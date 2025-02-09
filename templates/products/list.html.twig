@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Products{% endblock %}
+
+{% block body %}
+    <h1>Products</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.price }}</td>
+                <td>
+                    <form method="post" class="add-to-cart-form" data-product-id="{{ product.id }}">
+                        <input type="number" name="quantity" value="1" min="1" class="form-control quantity" />
+                        <button type="submit" class="btn btn-success">Add to Cart</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('cart_view') }}" class="btn btn-primary mt-3">View Cart</a>
+
+    <script>
+        document.querySelectorAll('.add-to-cart-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const productId = this.getAttribute('data-product-id');
+                const quantity = this.querySelector('.quantity').value;
+
+                fetch(`/cart/add/${productId}`, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'quantity': quantity
+                    }),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                    })
+                    .catch(error => {
+                        console.error('Error adding product to cart:', error);
+                    });
+            });
+        });
+    </script>
+{% endblock %}

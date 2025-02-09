@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Main Menu{% endblock %}
+
+{% block body %}
+    <h1>Welcome, {{ user.username }}!</h1>
+    <ul>
+        <li><a href="{{ path('product_list') }}">View Products</a></li>
+        <li><a href="{{ path('orders_list') }}">View Orders</a></li>
+        <li><a href="{{ path('cart_view') }}">Cart</a></li>
+    </ul>
+
+    <form method="get" action="{{ path('logout') }}" class="mt-3">
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
+{% endblock %}

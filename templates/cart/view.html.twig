@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Your Cart</h1>
+
+    {% if app.request.query.get('error') %}
+        <div class="alert alert-danger">
+            {{ app.request.query.get('error') }}
+        </div>
+    {% endif %}
+
+    {% if app.request.query.get('message') %}
+        <div class="alert alert-success">
+            {{ app.request.query.get('message') }}
+        </div>
+        <p><strong>Order Number:</strong> {{ app.request.query.get('order_id') }}</p>
+        <p><strong>Total Amount:</strong> {{ app.request.query.get('total') }}</p>
+    {% endif %}
+
+    {% if cart.items is empty %}
+        <p>Your cart is empty.</p>
+    {% else %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in cart.items %}
+                <tr>
+                    <td>
+                        {% if item.product is iterable %}
+                            {{ item.product.name ?? 'Unknown Product' }}
+                        {% else %}
+                            {{ item.product }}
+                        {% endif %}
+                    </td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        <form method="post" action="{{ path('cart_remove', { 'productId': item.id }) }}">
+                            <button class="btn btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <p><strong>Total Amount:</strong> {{ cart.total }}</p>
+        <form id="order-form" method="post" action="{{ path('order_submit') }}">
+            <button type="submit" class="btn btn-primary">Place Order</button>
+        </form>
+    {% endif %}
+{% endblock %}
