@@ -110,7 +110,7 @@ class CartService
 
         return new JsonResponse([
             'message' => 'Product added to cart',
-            'cartTotal' => $this->getCartTotal($cart)
+            'cartTotal' => $cart->getTotal()
         ]);
     }
 
@@ -143,11 +143,6 @@ class CartService
         $this->logger->info('Cart total: ' . $total);
 
         return ['items' => $items, 'total' => $total];
-    }
-
-    public function getCartTotal(Cart $cart): string
-    {
-        return $cart->getTotal();
     }
 
     public function clearCart(User $user, EntityManagerInterface $em): void
