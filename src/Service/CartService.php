@@ -6,7 +6,6 @@ use App\Entity\Cart;
 use App\Entity\CartProduct;
 use App\Entity\Product;
 use App\Entity\User;
-use App\Repository\AuthRepository;
 use App\Repository\CartProductRepository;
 use App\Repository\CartRepository;
 use App\Repository\ProductRepository;
@@ -22,7 +21,6 @@ class CartService
     private CartProductRepository $cartProductRepository;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
-    private AuthRepository $authRepository;
 
     public function __construct(
         CartRepository $cartRepository,
@@ -30,42 +28,24 @@ class CartService
         CartProductRepository $cartProductRepository,
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        AuthRepository $authRepository
     ) {
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->cartProductRepository = $cartProductRepository;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
-        $this->authRepository = $authRepository;
     }
 
-    /**
-     * @throws Exception
-     */
-    public function getOrCreateCartForUser($user): Cart
+    public function createCartForUser(User $user): Cart
     {
-        $user = $this->getUserById($user->getId());
-        if (!$user) {
-            $this->logger->error('User not found with ID: ' . $user->getId());
-            throw new Exception('User not found');
-        }
+        $this->logger->info('Creating a new cart for user ID: ' . $user->getId());
 
-        $this->logger->info('User found with ID: ' . $user->getId());
-
-        $cart = $this->getCartForUser($user);
-        if (!$cart) {
-            $this->logger->info('Cart not found. Creating a new cart for user ID: ' . $user->getId());
-            $cart = new Cart();
-            $cart->setUser($user);
-            $this->entityManager->persist($cart);
-            $this->entityManager->flush();
-            $this->logger->info('Cart created for user ID: ' . $user->getId());
-        }
-
-        $this->logger->info('Updating cart total after creation');
-        $cart->updateTotal();
+        $cart = new Cart();
+        $cart->setUser($user);
         $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        $this->logger->info('Cart created for user ID: ' . $user->getId());
 
         return $cart;
     }
@@ -84,34 +64,45 @@ class CartService
             return new JsonResponse(['error' => 'Product not found'], 404);
         }
 
-        $cart = $this->getOrCreateCartForUser($user);
+        $cart = $this->getCartForUser($user);
         $this->logger->info('Cart retrieved for user ID ' . $user->getId());
 
-        $cartProduct = $this->getCartProduct($cart, $product);
+        $this->entityManager->beginTransaction();
 
-        if ($cartProduct) {
-            $this->logger->info('Updating product quantity in cart: ' . $product->getName());
-            $cartProduct->setQuantity($cartProduct->getQuantity() + $quantity);
-        } else {
-            $this->logger->info('Adding new product to cart: ' . $product->getName());
-            $cartProduct = new CartProduct();
-            $cartProduct->setCart($cart);
-            $cartProduct->setProduct($product);
-            $cartProduct->setQuantity($quantity);
-            $this->entityManager->persist($cartProduct);
+        try {
+            $cartProduct = $this->getCartProduct($cart, $product);
+
+            if ($cartProduct) {
+                $this->logger->info('Updating product quantity in cart: ' . $product->getName());
+                $cartProduct->setQuantity($cartProduct->getQuantity() + $quantity);
+            } else {
+                $this->logger->info('Adding new product to cart: ' . $product->getName());
+                $cartProduct = new CartProduct();
+                $cartProduct->setCart($cart);
+                $cartProduct->setProduct($product);
+                $cartProduct->setQuantity($quantity);
+                $this->entityManager->persist($cartProduct);
+            }
+
+            $this->logger->info('Updating cart total for user ID: ' . $user->getId());
+            $cart->updateTotal();
+            $this->entityManager->persist($cart);
+            $this->logger->info('Cart total before saving: ' . $cart->getTotal());
+
+            $this->entityManager->flush();
+            $this->entityManager->commit();
+            $this->logger->info('Cart total after saving: ' . $cart->getTotal());
+
+            return new JsonResponse([
+                'message' => 'Product added to cart',
+                'cartTotal' => $cart->getTotal()
+            ]);
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+            $this->logger->error('Error adding product to cart: ' . $e->getMessage());
+
+            return new JsonResponse(['error' => 'Failed to add product to cart'], 500);
         }
-
-        $this->logger->info('Updating cart total for user ID: ' . $user->getId());
-        $cart->updateTotal();
-        $this->entityManager->persist($cart);
-        $this->logger->info('Cart total before saving: ' . $cart->getTotal());
-        $this->entityManager->flush();
-        $this->logger->info('Cart total after saving: ' . $cart->getTotal());
-
-        return new JsonResponse([
-            'message' => 'Product added to cart',
-            'cartTotal' => $cart->getTotal()
-        ]);
     }
 
     /**
@@ -119,7 +110,7 @@ class CartService
      */
     public function getCartDetails($user): array
     {
-        $cart = $this->getOrCreateCartForUser($user);
+        $cart = $this->getCartForUser($user);
         $this->logger->info('Updating cart total before retrieving data.');
         $cart->updateTotal();
 
@@ -180,11 +171,6 @@ class CartService
 
         $cart->updateTotal();
         $this->entityManager->flush();
-    }
-
-    private function getUserById($userId): ?User
-    {
-        return $this->authRepository->findById($userId);
     }
 
     private function getCartForUser(User $user): ?Cart
