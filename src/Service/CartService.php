@@ -97,7 +97,7 @@ class CartService
                 'message' => 'Product added to cart',
                 'cartTotal' => $cart->getTotal()
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->entityManager->rollback();
             $this->logger->error('Error adding product to cart: ' . $e->getMessage());
 
