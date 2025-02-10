@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Cart;
 use App\Entity\CartProduct;
+use App\Entity\Product;
 use Doctrine\ORM\EntityManagerInterface;
 
 class CartProductRepository
@@ -24,5 +26,11 @@ class CartProductRepository
             ->setParameter('userId', $userId);
 
         return $qb->getQuery()->getResult();
+    }
+
+    public function findByCartAndProduct(Cart $cart, Product $product): ?CartProduct
+    {
+        return $this->entityManager->getRepository(CartProduct::class)
+            ->findOneBy(['cart' => $cart, 'product' => $product]);
     }
 }
