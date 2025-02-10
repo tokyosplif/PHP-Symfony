@@ -4,8 +4,10 @@ namespace App\Service;
 
 use App\Entity\Cart;
 use App\Entity\CartProduct;
+use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\AuthRepository;
+use App\Repository\CartProductRepository;
 use App\Repository\CartRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +19,7 @@ class CartService
 {
     private CartRepository $cartRepository;
     private ProductRepository $productRepository;
+    private CartProductRepository $cartProductRepository;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
     private AuthRepository $authRepository;
@@ -24,12 +27,14 @@ class CartService
     public function __construct(
         CartRepository $cartRepository,
         ProductRepository $productRepository,
+        CartProductRepository $cartProductRepository,
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
         AuthRepository $authRepository
     ) {
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
+        $this->cartProductRepository = $cartProductRepository;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
         $this->authRepository = $authRepository;
@@ -40,7 +45,7 @@ class CartService
      */
     public function getOrCreateCartForUser($user): Cart
     {
-        $user = $this->authRepository->findById($user->getId());
+        $user = $this->getUserById($user->getId());
         if (!$user) {
             $this->logger->error('User not found with ID: ' . $user->getId());
             throw new Exception('User not found');
@@ -48,7 +53,7 @@ class CartService
 
         $this->logger->info('User found with ID: ' . $user->getId());
 
-        $cart = $this->cartRepository->findCartByUserId(['user' => $user]);
+        $cart = $this->getCartForUser($user);
         if (!$cart) {
             $this->logger->info('Cart not found. Creating a new cart for user ID: ' . $user->getId());
             $cart = new Cart();
@@ -74,7 +79,7 @@ class CartService
             return new JsonResponse(['error' => 'Unauthorized access'], 401);
         }
 
-        $product = $this->productRepository->findById($productId);
+        $product = $this->getProductById($productId);
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], 404);
         }
@@ -82,8 +87,7 @@ class CartService
         $cart = $this->getOrCreateCartForUser($user);
         $this->logger->info('Cart retrieved for user ID ' . $user->getId());
 
-        $cartProduct = $this->entityManager->getRepository(CartProduct::class)
-            ->findOneBy(['cart' => $cart, 'product' => $product]);
+        $cartProduct = $this->getCartProduct($cart, $product);
 
         if ($cartProduct) {
             $this->logger->info('Updating product quantity in cart: ' . $product->getName());
@@ -165,7 +169,7 @@ class CartService
 
     public function removeProductFromCart(int $productId, User $user): void
     {
-        $cart = $this->cartRepository->findCartByUserId(['user' => $user]);
+        $cart = $this->getCartForUser($user);
 
         if (!$cart) {
             return;
@@ -181,5 +185,25 @@ class CartService
 
         $cart->updateTotal();
         $this->entityManager->flush();
+    }
+
+    private function getUserById($userId): ?User
+    {
+        return $this->authRepository->findById($userId);
+    }
+
+    private function getCartForUser(User $user): ?Cart
+    {
+        return $this->cartRepository->findCartByUserId(['user' => $user]);
+    }
+
+    private function getProductById(int $productId): ?Product
+    {
+        return $this->productRepository->findById($productId);
+    }
+
+    private function getCartProduct(Cart $cart, Product $product): ?CartProduct
+    {
+        return $this->cartProductRepository->findByCartAndProduct($cart, $product);
     }
 }
