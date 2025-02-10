@@ -7,7 +7,6 @@ use App\Entity\OrderProduct;
 use App\Entity\User;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
-use App\Repository\AuthRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -16,7 +15,6 @@ class OrderService
 {
     private OrderRepository $orderRepository;
     private ProductRepository $productRepository;
-    private AuthRepository $userRepository;
     private CartService $cartService;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
@@ -24,14 +22,12 @@ class OrderService
     public function __construct(
         OrderRepository        $orderRepository,
         ProductRepository      $productRepository,
-        AuthRepository         $userRepository,
         CartService            $cartService,
         EntityManagerInterface $entityManager,
         LoggerInterface        $logger
     ) {
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
-        $this->userRepository = $userRepository;
         $this->cartService = $cartService;
         $this->entityManager = $entityManager;
         $this->logger = $logger;

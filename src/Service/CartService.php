@@ -35,6 +35,9 @@ class CartService
         $this->authRepository = $authRepository;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getOrCreateCartForUser($user): Cart
     {
         $user = $this->authRepository->findById($user->getId());
@@ -62,6 +65,9 @@ class CartService
         return $cart;
     }
 
+    /**
+     * @throws Exception
+     */
     public function addProductToCart($productId, int $quantity, $user): JsonResponse
     {
         if (!$user) {
@@ -104,6 +110,9 @@ class CartService
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function getCartDetails($user): array
     {
         $cart = $this->getOrCreateCartForUser($user);

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\CartService;
 use App\Service\AuthService;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +25,9 @@ class CartController extends AbstractController
         $this->authService = $authService;
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route('/cart', name: 'cart_view', methods: ['GET'])]
     public function viewCart(Request $request): Response
     {
@@ -44,6 +48,9 @@ class CartController extends AbstractController
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route('/cart/add/{productId}', name: 'cart_add', methods: ['POST'])]
     public function addProductToCart(Request $request, int $productId): JsonResponse
     {
@@ -65,6 +72,9 @@ class CartController extends AbstractController
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route('/cart/remove/{productId}', name: 'cart_remove', methods: ['POST'])]
     public function removeFromCart(Request $request, int $productId): JsonResponse
     {
