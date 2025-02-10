@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\AuthService;
+use App\Service\CartService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,11 +13,13 @@ use Psr\Log\LoggerInterface;
 class AuthController extends AbstractController
 {
     private AuthService $userService;
+    private CartService $cartService;
     private LoggerInterface $logger;
 
-    public function __construct(AuthService $userService, LoggerInterface $logger)
+    public function __construct(AuthService $userService, CartService $cartService, LoggerInterface $logger)
     {
         $this->userService = $userService;
+        $this->cartService = $cartService;
         $this->logger = $logger;
     }
 
@@ -46,6 +49,8 @@ class AuthController extends AbstractController
 
         $user = $this->userService->findByUsername($username);
         if ($user) {
+            $this->cartService->createCartForUser($user);
+
             $session = $request->getSession();
             $session->set('user_id', $user->getId());
 
