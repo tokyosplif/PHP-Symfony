@@ -31,6 +31,9 @@ class OrderController extends AbstractController
         $this->logger = $logger;
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route('/order', name: 'order_submit', methods: ['POST'])]
     public function submitOrder(Request $request): JsonResponse
     {
