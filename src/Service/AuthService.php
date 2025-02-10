@@ -20,23 +20,18 @@ class AuthService
 
     public function registerUser(string $username, string $password): bool
     {
-        $existingUser = $this->authRepository->findByUsername($username);
-        if ($existingUser) {
-            return false;
-        }
-
         $user = new User();
         $user->setUsername($username);
         $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
 
-        $this->authRepository->save($user, true);
+        $this->saveUser($user);
 
         return true;
     }
 
     public function authenticateUser(string $username, string $password): ?User
     {
-        $user = $this->authRepository->findByUsername($username);
+        $user = $this->findByUsername($username);
 
         if ($user && password_verify($password, $user->getPassword())) {
             return $user;
@@ -48,11 +43,6 @@ class AuthService
     public function findByUsername(string $username): ?User
     {
         return $this->authRepository->findByUsername($username);
-    }
-
-    public function findById(int $id): ?User
-    {
-        return $this->authRepository->findById($id);
     }
 
     public function getUserFromSession(Request $request): ?User
@@ -71,5 +61,14 @@ class AuthService
 
         return $user;
     }
-}
 
+    private function findById(int $id): ?User
+    {
+        return $this->authRepository->findById($id);
+    }
+
+    private function saveUser(User $user): void
+    {
+        $this->authRepository->save($user, true);
+    }
+}
