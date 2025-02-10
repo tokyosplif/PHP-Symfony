@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Order;
 use App\Entity\OrderProduct;
+use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\OrderRepository;
 use App\Repository\ProductRepository;
@@ -41,7 +42,7 @@ class OrderService
 
         $total = 0;
         foreach ($cartItems as $item) {
-            $product = $this->productRepository->findById($item['id']);
+            $product = $this->getProductById($item['id']);
             if ($product) {
                 $total += $product->getPrice() * $item['quantity'];
             }
@@ -53,7 +54,7 @@ class OrderService
         $this->entityManager->persist($order);
 
         foreach ($cartItems as $item) {
-            $product = $this->productRepository->findById($item['id']);
+            $product = $this->getProductById($item['id']);
             if ($product) {
                 $orderProduct = new OrderProduct();
                 $orderProduct->setOrder($order);
@@ -76,12 +77,11 @@ class OrderService
 
     public function getOrderDetails(int $id, User $user): ?Order
     {
-        $order = $this->orderRepository->findOneBy(['id' => $id, 'user' => $user]);
+        return $this->orderRepository->findOneBy(['id' => $id, 'user' => $user]);
+    }
 
-        if (!$order) {
-            return null;
-        }
-
-        return $order;
+    private function getProductById(int $productId): ?Product
+    {
+        return $this->productRepository->findById($productId);
     }
 }
