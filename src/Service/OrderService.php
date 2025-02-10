@@ -45,7 +45,7 @@ class OrderService
 
         $total = 0;
         foreach ($cartItems as $item) {
-            $product = $this->productRepository->find($item['id']);
+            $product = $this->productRepository->findById($item['id']);
             if ($product) {
                 $total += $product->getPrice() * $item['quantity'];
             }
@@ -57,7 +57,7 @@ class OrderService
         $this->entityManager->persist($order);
 
         foreach ($cartItems as $item) {
-            $product = $this->productRepository->find($item['id']);
+            $product = $this->productRepository->findById($item['id']);
             if ($product) {
                 $orderProduct = new OrderProduct();
                 $orderProduct->setOrder($order);

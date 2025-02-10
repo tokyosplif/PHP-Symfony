@@ -14,7 +14,7 @@ class CartRepository
         $this->entityManager = $entityManager;
     }
 
-    public function findOneBy(array $criteria)
+    public function findCartByUserId(array $criteria)
     {
         return $this->entityManager->getRepository(Cart::class)->findOneBy($criteria);
     }

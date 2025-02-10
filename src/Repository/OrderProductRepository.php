@@ -18,7 +18,7 @@ class OrderProductRepository
      * @param int $userId
      * @return OrderProduct[]
      */
-    public function findProductsByUser(int $userId): array
+    public function findProductsByUserId(int $userId): array
     {
         return $this->entityManager->getRepository(OrderProduct::class)
             ->createQueryBuilder('op')

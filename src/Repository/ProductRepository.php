@@ -14,7 +14,7 @@ class ProductRepository
         $this->entityManager = $entityManager;
     }
 
-    public function find(int $id): ?Product
+    public function findById(int $id): ?Product
     {
         return $this->entityManager->getRepository(Product::class)->find($id);
     }

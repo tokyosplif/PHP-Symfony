@@ -35,7 +35,7 @@ class CartService
         $user = $this->entityManager->getRepository(User::class)->find($user->getId());
         $this->logger->info('User found with ID: ' . $user->getId());
 
-        $cart = $this->cartRepository->findOneBy(['user' => $user]);
+        $cart = $this->cartRepository->findCartByUserId(['user' => $user]);
         if (!$cart) {
             $this->logger->info('Cart not found. Creating a new cart for user ID: ' . $user->getId());
             $cart = new Cart();
@@ -58,7 +58,7 @@ class CartService
             return new JsonResponse(['error' => 'Unauthorized access'], 401);
         }
 
-        $product = $this->productRepository->find($productId);
+        $product = $this->productRepository->findById($productId);
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], 404);
         }
@@ -146,7 +146,7 @@ class CartService
 
     public function removeProductFromCart(int $productId, User $user): void
     {
-        $cart = $this->cartRepository->findOneBy(['user' => $user]);
+        $cart = $this->cartRepository->findCartByUserId(['user' => $user]);
 
         if (!$cart) {
             return;

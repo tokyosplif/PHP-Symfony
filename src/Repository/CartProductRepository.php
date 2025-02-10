@@ -14,7 +14,7 @@ class CartProductRepository
         $this->entityManager = $entityManager;
     }
 
-    public function findProductsByUser(int $userId): array
+    public function findProductsByUserId(int $userId): array
     {
         $qb = $this->entityManager->createQueryBuilder()
             ->select('cp')
