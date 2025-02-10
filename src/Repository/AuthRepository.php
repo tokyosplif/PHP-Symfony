@@ -19,6 +19,11 @@ class AuthRepository
         return $this->entityManager->getRepository(User::class)->find($userId);
     }
 
+    public function findByUsername(string $username): ?User
+    {
+        return $this->entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
+    }
+
     public function save(User $user, bool $flush = false): void
     {
         $this->entityManager->persist($user);
