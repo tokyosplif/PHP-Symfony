@@ -5,9 +5,11 @@ namespace App\Service;
 use App\Entity\Cart;
 use App\Entity\CartProduct;
 use App\Entity\User;
+use App\Repository\AuthRepository;
 use App\Repository\CartRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Psr\Log\LoggerInterface;
 
@@ -17,22 +19,30 @@ class CartService
     private ProductRepository $productRepository;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
+    private AuthRepository $authRepository;
 
     public function __construct(
         CartRepository $cartRepository,
         ProductRepository $productRepository,
         EntityManagerInterface $entityManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        AuthRepository $authRepository
     ) {
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+        $this->authRepository = $authRepository;
     }
 
     public function getOrCreateCartForUser($user): Cart
     {
-        $user = $this->entityManager->getRepository(User::class)->find($user->getId());
+        $user = $this->authRepository->findById($user->getId());
+        if (!$user) {
+            $this->logger->error('User not found with ID: ' . $user->getId());
+            throw new Exception('User not found');
+        }
+
         $this->logger->info('User found with ID: ' . $user->getId());
 
         $cart = $this->cartRepository->findCartByUserId(['user' => $user]);

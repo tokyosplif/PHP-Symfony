@@ -73,11 +73,6 @@ class OrderService
         return $order;
     }
 
-    public function getUserById(int $userId): ?User
-    {
-        return $this->userRepository->findById($userId);
-    }
-
     public function getOrdersForUser(User $user): array
     {
         return $this->orderRepository->findBy(['user' => $user]);
