@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\AuthRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -53,7 +52,7 @@ class AuthService
 
     public function findById(int $id): ?User
     {
-        return $this->authRepository->find($id);
+        return $this->authRepository->findById($id);
     }
 
     public function getUserFromSession(Request $request): ?User

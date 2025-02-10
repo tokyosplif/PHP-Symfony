@@ -14,7 +14,7 @@ class AuthRepository
         $this->entityManager = $entityManager;
     }
 
-    public function find(int $userId): ?User
+    public function findById(int $userId): ?User
     {
         return $this->entityManager->getRepository(User::class)->find($userId);
     }

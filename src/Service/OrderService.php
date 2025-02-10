@@ -75,7 +75,7 @@ class OrderService
 
     public function getUserById(int $userId): ?User
     {
-        return $this->userRepository->find($userId);
+        return $this->userRepository->findById($userId);
     }
 
     public function getOrdersForUser(User $user): array
